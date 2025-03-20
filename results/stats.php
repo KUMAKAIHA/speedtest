@@ -13,7 +13,7 @@ header('Pragma: no-cache');
 <!DOCTYPE html>
 <html>
     <head>
-        <title>LibreSpeed - Stats</title>
+        <title>服务器测速 - 统计</title>
         <style type="text/css">
             html,body{
                 margin:0;
@@ -61,11 +61,11 @@ header('Pragma: no-cache');
         </style>
     </head>
     <body>
-        <h1>LibreSpeed - Stats</h1>
+        <h1>服务器测速 - 统计</h1>
         <?php
         if (!isset($stats_password) || $stats_password === 'PASSWORD') {
             ?>
-                Please set $stats_password in telemetry_settings.php to enable access.
+                请在telemetry_settings.php中设置$stats_password以启用访问。
             <?php
         } elseif ($_SESSION['logged'] === true) {
             if ($_GET['op'] === 'logout') {
@@ -73,79 +73,84 @@ header('Pragma: no-cache');
                 ?><script type="text/javascript">window.location=location.protocol+"//"+location.host+location.pathname;</script><?php
             } else {
                 ?>
-                <form action="stats.php" method="GET"><input type="hidden" name="op" value="logout" /><input type="submit" value="Logout" /></form>
                 <form action="stats.php" method="GET">
-                    <h3>Search test results</h3>
+                    <input type="hidden" name="op" value="logout" />
+                    <input type="submit" value="登出" />
+                    <input type="button" value="返回" onclick="window.location.href = window.location.origin;" style="margin-left: 10px;" />
+                </form>
+                <form action="stats.php" method="GET">
+                    <h3>搜索测速结果</h3>
                     <input type="hidden" name="op" value="id" />
-                    <input type="text" name="id" id="id" placeholder="Test ID" value=""/>
-                    <input type="submit" value="Find" />
-                    <input type="submit" onclick="document.getElementById('id').value=''" value="Show last 100 tests" />
+                    <input type="text" name="id" id="id" placeholder="测试 ID" value=""/>
+                    <input type="submit" value="查找" />
+                    <input type="submit" onclick="document.getElementById('id').value=''" value="显示最近100次测试" />
                 </form>
                 <?php
                 if ($_GET['op'] === 'id' && !empty($_GET['id'])) {
                     $speedtest = getSpeedtestUserById($_GET['id']);
                     $speedtests = [];
                     if (false === $speedtest) {
-                        echo '<div>There was an error trying to fetch the test result for ID "'.htmlspecialchars($_GET['id'], ENT_HTML5, 'UTF-8').'".</div>';
+                        echo '<div>尝试获取 ID "'.htmlspecialchars($_GET['id'], ENT_HTML5, 'UTF-8').'" 的速度测试结果时出现错误。</div>';
                     } elseif (null === $speedtest) {
-                        echo '<div>Could not find a test result for ID "'.htmlspecialchars($_GET['id'], ENT_HTML5, 'UTF-8').'".</div>';
+                        echo '<div>未找到 ID "'.htmlspecialchars($_GET['id'], ENT_HTML5, 'UTF-8').'" 的速度测试结果。</div>';
                     } else {
                         $speedtests = [$speedtest];
                     }
                 } else {
                     $speedtests = getLatestSpeedtestUsers();
                     if (false === $speedtests) {
-                        echo '<div>There was an error trying to fetch latest test results.</div>';
+                        echo '<div>尝试获取最新速度测试结果时出现错误。</div>';
                     } elseif (empty($speedtests)) {
-                        echo '<div>Could not find any test results in database.</div>';
+                        echo '<div>数据库中找不到任何速度测试结果。</div>';
                     }
                 }
+                
                 foreach ($speedtests as $speedtest) {
                     ?>
                     <table>
                         <tr>
-                            <th>Test ID</th>
+                            <th>测试 ID</th>
                             <td><?= htmlspecialchars($speedtest['id_formatted'], ENT_HTML5, 'UTF-8') ?></td>
                         </tr>
                         <tr>
-                            <th>Date and time</th>
+                            <th>日期与时间</th>
                             <td><?= htmlspecialchars($speedtest['timestamp'], ENT_HTML5, 'UTF-8') ?></td>
                         </tr>
                         <tr>
-                            <th>IP and ISP Info</th>
+                            <th>IP和ISP信息</th>
                             <td>
                                 <?= htmlspecialchars($speedtest['ip'], ENT_HTML5, 'UTF-8') ?><br/>
                                 <?= htmlspecialchars($speedtest['ispinfo'], ENT_HTML5, 'UTF-8') ?>
                             </td>
                         </tr>
                         <tr>
-                            <th>User agent and locale</th>
+                            <th>设备信息</th>
                             <td><?= htmlspecialchars($speedtest['ua'], ENT_HTML5, 'UTF-8') ?><br/>
                                 <?= htmlspecialchars($speedtest['lang'], ENT_HTML5, 'UTF-8') ?>
                             </td>
                         </tr>
                         <tr>
-                            <th>Download speed</th>
+                            <th>下载速度</th>
                             <td><?= htmlspecialchars($speedtest['dl'], ENT_HTML5, 'UTF-8') ?></td>
                         </tr>
                         <tr>
-                            <th>Upload speed</th>
+                            <th>上传速度</th>
                             <td><?= htmlspecialchars($speedtest['ul'], ENT_HTML5, 'UTF-8') ?></td>
                         </tr>
                         <tr>
-                            <th>Ping</th>
+                            <th>延迟</th>
                             <td><?= htmlspecialchars($speedtest['ping'], ENT_HTML5, 'UTF-8') ?></td>
                         </tr>
                         <tr>
-                            <th>Jitter</th>
+                            <th>抖动</th>
                             <td><?= htmlspecialchars($speedtest['jitter'], ENT_HTML5, 'UTF-8') ?></td>
                         </tr>
                         <tr>
-                            <th>Log</th>
+                            <th>日志</th>
                             <td><?= htmlspecialchars($speedtest['log'], ENT_HTML5, 'UTF-8') ?></td>
                         </tr>
                         <tr>
-                            <th>Extra info</th>
+                            <th>其它信息</th>
                             <td><?= htmlspecialchars($speedtest['extra'], ENT_HTML5, 'UTF-8') ?></td>
                         </tr>
                     </table>
@@ -158,9 +163,9 @@ header('Pragma: no-cache');
         } else {
             ?>
             <form action="stats.php?op=login" method="POST">
-                <h3>Login</h3>
-                <input type="password" name="password" placeholder="Password" value=""/>
-                <input type="submit" value="Login" />
+                <h3>登录</h3>
+                <input type="password" name="password" placeholder="密码" value=""/>
+                <input type="submit" value="登录" />
             </form>
             <?php
         }

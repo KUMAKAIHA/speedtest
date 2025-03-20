@@ -3,7 +3,16 @@
 require_once 'idObfuscation.php';
 
 define('TELEMETRY_SETTINGS_FILE', 'telemetry_settings.php');
+$tz = getenv('TZ');
+if ($tz !== false) {
+    // 如果环境变量TZ存在，则设置PHP的默认时区为该值
+    date_default_timezone_set($tz);
+} else {
+    // 如果环境变量TZ不存在，设置一个默认时区，或者处理错误
+    // 设置为Asia/Shanghai
+    date_default_timezone_set('Asia/Shanghai');
 
+}
 /**
  * @return PDO|false
  */
@@ -48,7 +57,7 @@ function getPdo($returnErrorMessage = false)
 			if (!$MsSql_WindowsAuthentication and
 			    !isset(
 						$MsSql_username,
-						$MsSql_password
+						$MsSql_password,
 						)
 				) {
 				if($returnErrorMessage){
@@ -70,7 +79,7 @@ function getPdo($returnErrorMessage = false)
 			if($MsSql_WindowsAuthentication){
 				return new PDO($dsn, "", "", $pdoOptions);
 			} else {
-				return new PDO($dsn, $MsSql_username, $MsSql_password, $pdoOptions);
+				return new PDO($dsn, $MySql_username, $MySql_password, $pdoOptions);
 			}
         }
 
@@ -106,21 +115,20 @@ function getPdo($returnErrorMessage = false)
 
             $pdo = new PDO('sqlite:'.$Sqlite_db_file, null, null, $pdoOptions);
 
-            # TODO: Why create table only in sqlite mode?
             $pdo->exec('
                 CREATE TABLE IF NOT EXISTS `speedtest_users` (
-                `id`        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                `ispinfo`   text,
-                `extra`     text,
-                `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `ip`        text NOT NULL,
-                `ua`        text NOT NULL,
-                `lang`      text NOT NULL,
-                `dl`        text,
-                `ul`        text,
-                `ping`      text,
-                `jitter`    text,
-                `log`       longtext
+                `id`    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                `ispinfo`    text,
+                `extra`    text,
+                `timestamp`     timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `ip`    text NOT NULL,
+                `ua`    text NOT NULL,
+                `lang`  text NOT NULL,
+                `dl`    text,
+                `ul`    text,
+                `ping`  text,
+                `jitter`        text,
+                `log`   longtext
                 );
             ');
 
@@ -185,21 +193,26 @@ function insertSpeedtestUser($ip, $ispinfo, $extra, $ua, $lang, $dl, $ul, $ping,
     }
 
     try {
+        // 获取当前时间并加上8小时
+        $currentTimestamp = new DateTime('now'); // 这里会自动使用 PHP 配置的时区
+        $formattedTimestamp = $currentTimestamp->format('Y-m-d H:i:s');
+    
         $stmt = $pdo->prepare(
             'INSERT INTO speedtest_users
-        (ip,ispinfo,extra,ua,lang,dl,ul,ping,jitter,log)
-        VALUES (?,?,?,?,?,?,?,?,?,?)'
+        (ip,ispinfo,extra,ua,lang,dl,ul,ping,jitter,log,timestamp)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)' // 这里添加了timestamp字段
         );
         $stmt->execute([
-            $ip, $ispinfo, $extra, $ua, $lang, $dl, $ul, $ping, $jitter, $log
+            $ip, $ispinfo, $extra, $ua, $lang, $dl, $ul, $ping, $jitter, $log, $formattedTimestamp // 在execute的参数中添加$formattedTimestamp
         ]);
         $id = $pdo->lastInsertId();
     } catch (Exception $e) {
-		if($returnExceptionOnError){
-			return $e;
-		}
+        if($returnExceptionOnError){
+            return $e;
+        }
         return false;
     }
+    
 
     if (isObfuscationEnabled()) {
         return obfuscateId($id);

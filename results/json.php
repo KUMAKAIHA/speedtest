@@ -1,8 +1,5 @@
 <?php
 
-error_reporting(0);
-header('Content-Type: application/json; charset=utf-8');
-
 require_once 'telemetry_db.php';
 
 /**
@@ -56,7 +53,7 @@ function formatSpeedtestData($speedtest)
 $speedtest = getSpeedtestUserById($_GET['id']);
 if (!is_array($speedtest)) {
     echo '{}';
-} else {
-    $speedtest = formatSpeedtestData($speedtest);
-    echo json_encode(array('timestamp'=>$speedtest['timestamp'],'download'=>$speedtest['dl'],'upload'=>$speedtest['ul'],'ping'=>$speedtest['ping'],'jitter'=>$speedtest['jitter'],'ispinfo'=>$speedtest['ispinfo']));
 }
+$speedtest = formatSpeedtestData($speedtest);
+
+echo json_encode(array('timestamp'=>$speedtest['timestamp'],'download'=>$speedtest['dl'],'upload'=>$speedtest['ul'],'ping'=>$speedtest['ping'],'jitter'=>$speedtest['jitter'],'ispinfo'=>$speedtest['ispinfo']));
